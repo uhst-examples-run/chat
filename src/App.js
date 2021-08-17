@@ -4,19 +4,62 @@ import { UHST } from 'uhst';
 import Chat from './Chat';
 
 class App extends Component {
+  clients = {};
+  host = null;
+
   startHosting = (props) => {
     const id = props.match.params.id;
     const uhst = new UHST();
-    const host = uhst.host(id);
-    host.on('ready', () => {
-      props.history.push(`/room/${host.hostId}`);
+    this.host = uhst.host(id);
+    this.host.on('ready', () => {
+      props.history.push(`/room/${this.host.hostId}`);
     });
-    host.on('connection', function connection(uhstSocket) {
-      uhstSocket.on('message', function incoming(message) {
-        host.broadcast(message);
+    this.host.on('connection', (uhstSocket) => {
+      uhstSocket.on('message', (json) => {
+        const message = JSON.parse(json);
+        switch (message.command) {
+          case 'new_message':
+            this.broadcast(this.clients[uhstSocket.remoteId], message.body);
+            break;
+          case 'set_nickname':
+            const nickname = message.nickname;
+            let nicknameTaken = false;
+            for (const clientId of Object.keys(this.clients)) {
+              nicknameTaken = (this.clients[clientId] === nickname)
+              if (nicknameTaken) {
+                break;
+              }
+            }
+            if (nicknameTaken) {
+              uhstSocket.send(JSON.stringify({
+                event: 'nickname_taken',
+                timestamp: Date.now(),
+                nickname
+              }));
+            } else {
+              uhstSocket.send(JSON.stringify({
+                event: 'room_joined',
+                timestamp: Date.now(),
+                nickname
+              }));
+              this.clients[uhstSocket.remoteId] = nickname;
+              this.broadcast(null, `${this.clients[uhstSocket.remoteId]} joined the room.`);
+            }
+        }
       });
     });
   };
+
+  broadcast = (author, body) => {
+    this.host.broadcast(
+      JSON.stringify({
+        event: 'new_message',
+        timestamp: Date.now(),
+        author,
+        body
+      })
+    );
+  }
 
   render() {
     return (
