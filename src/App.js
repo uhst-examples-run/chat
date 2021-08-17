@@ -52,6 +52,7 @@ class App extends Component {
                 `${this.clients[uhstSocket.remoteId]} joined the room.`
               );
             }
+            break;
           default:
             console.log(`Unsupported command: ${message.command}.`);
         }
