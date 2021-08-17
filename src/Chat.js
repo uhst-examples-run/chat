@@ -64,6 +64,8 @@ class Chat extends Component {
               nickname: message.nickname,
             });
             break;
+          default:
+            console.log(`Unsupported event: ${message.event}.`);
         }
       });
       this.client.on('error', (message) => {

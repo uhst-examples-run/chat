@@ -25,26 +25,35 @@ class App extends Component {
             const nickname = message.nickname;
             let nicknameTaken = false;
             for (const clientId of Object.keys(this.clients)) {
-              nicknameTaken = (this.clients[clientId] === nickname)
+              nicknameTaken = this.clients[clientId] === nickname;
               if (nicknameTaken) {
                 break;
               }
             }
             if (nicknameTaken) {
-              uhstSocket.send(JSON.stringify({
-                event: 'nickname_taken',
-                timestamp: Date.now(),
-                nickname
-              }));
+              uhstSocket.send(
+                JSON.stringify({
+                  event: 'nickname_taken',
+                  timestamp: Date.now(),
+                  nickname,
+                })
+              );
             } else {
-              uhstSocket.send(JSON.stringify({
-                event: 'room_joined',
-                timestamp: Date.now(),
-                nickname
-              }));
+              uhstSocket.send(
+                JSON.stringify({
+                  event: 'room_joined',
+                  timestamp: Date.now(),
+                  nickname,
+                })
+              );
               this.clients[uhstSocket.remoteId] = nickname;
-              this.broadcast(null, `${this.clients[uhstSocket.remoteId]} joined the room.`);
+              this.broadcast(
+                null,
+                `${this.clients[uhstSocket.remoteId]} joined the room.`
+              );
             }
+          default:
+            console.log(`Unsupported command: ${message.command}.`);
         }
       });
     });
@@ -56,10 +65,10 @@ class App extends Component {
         event: 'new_message',
         timestamp: Date.now(),
         author,
-        body
+        body,
       })
     );
-  }
+  };
 
   render() {
     return (
