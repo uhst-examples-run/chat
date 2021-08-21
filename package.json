@@ -2,6 +2,7 @@
   "name": "react-chat-interface",
   "version": "0.1.0",
   "private": true,
+  "homepage" : "https://examples.run/chat",
   "dependencies": {
     "classnames": "^2.2.5",
     "prop-types": "^15.5.10",
