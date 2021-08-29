@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import MessageForm from './MessageForm';
 import MessageList from './MessageList';
-import { UHST } from 'uhst';
+import { UHST, InvalidHostId } from 'uhst';
 import './Chat.css';
 
 class Chat extends Component {
@@ -39,6 +39,7 @@ class Chat extends Component {
               messages: [
                 ...this.state.messages,
                 {
+                  timestamp: new Date(message.timestamp),
                   me: message.author === this.state.nickname,
                   author: message.author,
                   body: message.body,
@@ -68,14 +69,23 @@ class Chat extends Component {
             console.log(`Unsupported event: ${message.event}.`);
         }
       });
-      this.client.on('error', (message) => {
-        this.props.history.push(`/new/${id}`);
+      this.client.on('error', (error) => {
+        if (error instanceof InvalidHostId) {
+          alert('There is no host for this room. You will become the host.');
+          this.props.history.push(`/new/${id}`);
+        }
+      });
+      this.client.on('close', () => {
+        this.setState({
+          joined: false,
+          messages: [...this.state.messages, { timestamp: new Date(), body: `Host left the room.` }],
+        });
       });
     } catch (err) {
       this.setState({
         messages: [
           ...this.state.messages,
-          { body: `Client received error: ${err}` },
+          { timestamp: new Date(), body: `Client received error: ${err}` },
         ],
       });
     }
@@ -106,7 +116,7 @@ class Chat extends Component {
 
     return (
       <>
-        <h3>Room: {id}</h3>
+        <h3>Room: {id} . Copy and share the URL to join.</h3>
         <div className="Chat">
           <MessageList messages={this.state.messages} />
           {this.state.joined ? (

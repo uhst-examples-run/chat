@@ -2,7 +2,7 @@
   "name": "react-chat-interface",
   "version": "0.1.0",
   "private": true,
-  "homepage" : "https://examples.run/chat",
+  "homepage": "https://examples.run/chat",
   "dependencies": {
     "classnames": "^2.2.5",
     "prop-types": "^15.5.10",
@@ -10,7 +10,7 @@
     "react-dom": "latest",
     "react-router-dom": "latest",
     "react-scripts": "2.0.0",
-    "uhst": "^3.1.0"
+    "uhst": "^3.3.0"
   },
   "proxy": "http://localhost:3001",
   "scripts": {

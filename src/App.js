@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
-import { HashRouter as Router, Switch, Route } from 'react-router-dom';
-import { UHST } from 'uhst';
+import {
+  HashRouter as Router,
+  Switch,
+  Route,
+  Redirect,
+} from 'react-router-dom';
+import { UHST, HostIdAlreadyInUse } from 'uhst';
 import Chat from './Chat';
 
 class App extends Component {
@@ -11,6 +16,12 @@ class App extends Component {
     const id = props.match.params.id;
     const uhst = new UHST();
     this.host = uhst.host(id);
+    this.host.on('error', function(error) {
+      if (error instanceof HostIdAlreadyInUse) {
+        alert('This room already has a host. You will join.');
+        props.history.push(`/room/${id}`);
+      }
+    });
     this.host.on('ready', () => {
       props.history.push(`/room/${this.host.hostId}`);
     });
@@ -49,13 +60,24 @@ class App extends Component {
               this.clients[uhstSocket.remoteId] = nickname;
               this.broadcast(
                 null,
-                `${this.clients[uhstSocket.remoteId]} joined the room.`
+                `*** ${this.clients[uhstSocket.remoteId]} (${
+                  uhstSocket.remoteId
+                }) joined the room.`
               );
             }
             break;
           default:
             console.log(`Unsupported command: ${message.command}.`);
         }
+      });
+      uhstSocket.on('close', () => {
+        this.broadcast(
+          null,
+          `*** ${this.clients[uhstSocket.remoteId]} (${
+            uhstSocket.remoteId
+          }) left the room.`
+        );
+        delete this.clients[uhstSocket.remoteId];
       });
     });
   };
@@ -76,18 +98,9 @@ class App extends Component {
       <Router>
         <div>
           <Switch>
-            <Route
-              exact
-              path="/"
-              render={(props) => (
-                <button
-                  type="button"
-                  onClick={() => props.history.push('/new')}
-                >
-                  Create Room
-                </button>
-              )}
-            />
+            <Route exact path="/">
+              <Redirect to="/new" />
+            </Route>
             <Route path="/new/:id?" render={this.startHosting} />
             <Route path="/room/:id" component={Chat} />
           </Switch>

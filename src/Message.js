@@ -5,6 +5,7 @@ import './Message.css'
 
 class Message extends Component {
   static propTypes = {
+    timestamp: PropTypes.instanceOf(Date),
     author: PropTypes.string,
     body: PropTypes.string.isRequired,
     me: PropTypes.bool,
@@ -18,8 +19,9 @@ class Message extends Component {
 
     return (
       <div className={classes}>
+        {`[${this.props.timestamp.getHours()}:${this.props.timestamp.getMinutes()}] `}
         {this.props.author && (
-          <span className="author">{this.props.author}:</span>
+          <span className="author">&lt;{this.props.author}&gt;</span>
         )}
         {this.props.body}
       </div>
